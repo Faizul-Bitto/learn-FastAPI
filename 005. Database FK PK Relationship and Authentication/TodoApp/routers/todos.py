@@ -139,7 +139,9 @@ async def delete_todo(
         .first()
     )
     if todo is None:
-        raise HTTPException(status_code=404, detail="Todo not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found"
+        )
 
     db.query(Todos).filter(Todos.id == todo_id).filter(
         Todos.owner_id == user.get("user_id")
