@@ -9,10 +9,7 @@ from .auth import get_current_user
 from ..database import SessionLocal
 from ..models import Todos
 
-router = APIRouter(
-    prefix="/todo",
-    tags=["todo"]
-)
+router = APIRouter(prefix="/todos", tags=["todos"])
 
 
 # Database Integration
