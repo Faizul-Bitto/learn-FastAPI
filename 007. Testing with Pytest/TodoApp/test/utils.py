@@ -6,6 +6,7 @@ from ..models import Todos, Users
 
 from ..database import Base
 from ..main import app
+from ..routers.auth import bcrypt_context
 
 SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:1234@localhost/todos_app_test"
 
@@ -39,11 +40,8 @@ client = TestClient(app)
 # -----------------------------
 # Fixture
 # -----------------------------
-
-
 @pytest.fixture
-def test_todo():
-
+def test_user():
     db = TestingSessionLocal()
 
     # Clean database
@@ -55,13 +53,12 @@ def test_todo():
 
     db.commit()
 
-    # Create User
     user = Users(
         email="john@test.com",
         user_name="john",
         first_name="John",
         last_name="Doe",
-        hashed_password="password",
+        hashed_password=bcrypt_context.hash("password"),
         role="admin",
         is_active=True,
         phone_number="01700000000",
@@ -71,9 +68,24 @@ def test_todo():
     db.commit()
     db.refresh(user)
 
-    # Create Todo
+    yield user
+
+    db.execute(text("DELETE FROM todos"))
+    db.execute(text("DELETE FROM users"))
+    db.commit()
+    db.close()
+
+
+@pytest.fixture
+def test_todo(test_user):
+    db = TestingSessionLocal()
+
     todo = Todos(
-        title="Test", description="Test", priority=5, complete=False, owner_id=user.id
+        title="Test",
+        description="Test",
+        priority=5,
+        complete=False,
+        owner_id=test_user.id
     )
 
     db.add(todo)
@@ -82,7 +94,4 @@ def test_todo():
 
     yield todo
 
-    db.execute(text("DELETE FROM todos"))
-    db.execute(text("DELETE FROM users"))
-    db.commit()
     db.close()
